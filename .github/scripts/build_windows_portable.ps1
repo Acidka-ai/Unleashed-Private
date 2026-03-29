@@ -6,6 +6,11 @@ $buildDir = Join-Path $repoRoot "build-win-gh"
 $distDir = Join-Path $buildDir "qFlipper"
 $qmake = (Get-Command qmake.exe -ErrorAction Stop).Source
 $windeployqt = (Get-Command windeployqt.exe -ErrorAction Stop).Source
+$gitVersion = $env:GITHUB_REF_NAME
+if ([string]::IsNullOrWhiteSpace($gitVersion)) {
+    $gitVersion = (git -C $repoRoot describe --tags --abbrev=0).Trim()
+}
+$gitVersion = $gitVersion -replace '^v', ''
 
 if (Test-Path $buildDir) {
     Remove-Item -Recurse -Force $buildDir
@@ -14,7 +19,7 @@ if (Test-Path $buildDir) {
 New-Item -ItemType Directory -Path $buildDir | Out-Null
 Push-Location $buildDir
 
-& $qmake "$repoRoot\qFlipper.pro" -spec win32-msvc "CONFIG+=release qtquickcompiler"
+& $qmake "$repoRoot\qFlipper.pro" -spec win32-msvc "CONFIG+=release qtquickcompiler" "GIT_VERSION=$gitVersion"
 nmake qmake_all
 nmake
 nmake install
