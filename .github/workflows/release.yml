@@ -90,7 +90,7 @@ jobs:
         with:
           version: 6.4.2
           arch: win64_msvc2019_64
-          modules: qt5compat
+          modules: qt5compat qtserialport qtsvg
           cache: true
 
       - name: Build portable Windows package
