@@ -72,10 +72,8 @@ jobs:
           retention-days: 7
 
   build_windows:
-    name: Build Windows Installer
-    runs-on: [self-hosted, X64, Windows]
-    env:
-      SIGNING_TOOL: ${{ secrets.WIN_SIGNING_TOOL }}
+    name: Build Windows Portable
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,15 +81,26 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Build application
-        run: .\build_windows.bat
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.4.2
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: Build portable Windows package
+        shell: powershell
+        run: .\.github\scripts\build_windows_portable.ps1
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: qFlipper-windows-bundle
           path: |
-            .\build\qFlipperSetup-64bit.exe
-            .\build\qFlipper-64bit.zip
+            .\build-win-gh\qFlipper.exe
+            .\build-win-gh\qFlipper-windows-portable.zip
           if-no-files-found: error
           retention-days: 7
