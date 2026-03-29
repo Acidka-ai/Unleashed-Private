@@ -178,7 +178,7 @@ void ApplicationBackend::installWirelessStack(const QUrl &fileUrl)
     device()->installWirelessStack(fileUrl);
 }
 
-void ApplicationBackend::installFUS(const QUrl &fileUrl, uint32_t address)
+void ApplicationBackend::installFUS(const QUrl &fileUrl, uint address)
 {
     setBackendState(BackendState::InstallingFUS);
     device()->installFUS(fileUrl, address);

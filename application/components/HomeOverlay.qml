@@ -204,35 +204,15 @@ AbstractOverlay {
         y: 265
 
         accent: {
-            switch(Backend.firmwareUpdateState) {
-            case ApplicationBackend.CanRepair:
-                return MainButton.Blue;
-            case ApplicationBackend.CanUpdate:
-                return MainButton.Green;
-            default:
-                return MainButton.Default;
-            }
+            return deviceState && deviceState.isRecoveryMode ? MainButton.Blue : MainButton.Green;
         }
 
-        icon.source: Backend.firmwareUpdateState === ApplicationBackend.ErrorOccured ? "qrc:/assets/gfx/symbolic/update-symbolic.svg" : ""
+        icon.source: "qrc:/assets/gfx/symbolic/update-symbolic.svg"
         icon.width: 32
         icon.height: 32
 
         ToolTip {
-            text: {
-                switch(Backend.firmwareUpdateState) {
-                case ApplicationBackend.CanRepair:
-                    return qsTr("Repair a broken firmware installation. May erase your progress and settings.");
-                case ApplicationBackend.CanUpdate:
-                    return qsTr("Update Flipper to the latest version");
-                case ApplicationBackend.CanInstall:
-                    return qsTr("Install firmware from currently selected update channel");
-                case ApplicationBackend.ErrorOccured:
-                    return qsTr("Press to check internet connection and try to update Flipper again");
-                default:
-                    return "";
-                }
-            }
+            text: qsTr("Select a .bin file and flash FUS to 0x080EC000")
 
             implicitWidth: 300
             visible: parent.hovered && text.length !== 0
@@ -259,9 +239,7 @@ AbstractOverlay {
             }
         }
 
-        visible: Backend.firmwareUpdateState !== ApplicationBackend.Unknown &&
-                 Backend.firmwareUpdateState !== ApplicationBackend.Checking &&
-                 Backend.firmwareUpdateState !== ApplicationBackend.ErrorOccured
+        visible: false
     }
 
     LinkButton {
@@ -277,32 +255,9 @@ AbstractOverlay {
     Action {
         id: updateButtonAction
 
-        enabled: Backend.firmwareUpdateState === ApplicationBackend.CanUpdate ||
-                 Backend.firmwareUpdateState === ApplicationBackend.CanInstall ||
-                 Backend.firmwareUpdateState === ApplicationBackend.CanRepair ||
-                 Backend.firmwareUpdateState === ApplicationBackend.ErrorOccured
-
-        text: {
-            switch(Backend.firmwareUpdateState) {
-            case Backend.Unknown:
-                return qsTr("No data");
-            case Backend.Checking:
-                return qsTr("Checking...");
-            case Backend.CanRepair:
-                return qsTr("Repair");
-            case Backend.CanUpdate:
-                return qsTr("Update");
-            case Backend.CanInstall:
-                return qsTr("Install");
-            case Backend.NoUpdates:
-                return qsTr("No updates");
-            case Backend.ErrorOccured:
-                return qsTr("Try again");
-            }
-        }
-
-        onTriggered: Backend.firmwareUpdateState !== ApplicationBackend.ErrorOccured ?
-                     updateButtonFunc() : Backend.checkFirmwareUpdates()
+        enabled: Backend.deviceState && Backend.deviceState.isOnline
+        text: qsTr("Update")
+        onTriggered: updateButtonFunc()
     }
 
     Action {
@@ -339,29 +294,7 @@ AbstractOverlay {
     }
 
     function updateButtonFunc() {
-        const channelName = Preferences.updateChannel;
-        const messageObj = deviceState.isRecoveryMode ? {
-                title : qsTr("Repair Device?"),
-                customText: qsTr("Repair"),
-                message : qsTr("Firmware <font color=\"%1\">%2</font><br/>will be installed")
-                          .arg(releaseButton.linkColor)
-                          .arg(releaseButton.text)
-            } : {
-                title : qsTr("Update firmware?"),
-                customText: qsTr("Update"),
-                message: qsTr("New firmware <font color=\"%1\">%2</font><br/>will be installed")
-                         .arg(releaseButton.linkColor)
-                         .arg(releaseButton.text),
-            };
-
-        const canUpdate = deviceInfo.storage.isExternalPresent ||
-                          deviceState.isRecoveryMode ||
-                          sdWarningDialog.result;
-        if(canUpdate) {
-            confirmationDialog.openWithMessage(Backend.mainAction, messageObj);
-        } else {
-            sdWarningDialog.open();
-        }
+        installFUSDangerDanger();
     }
 
     function installFromFile() {
@@ -470,14 +403,14 @@ AbstractOverlay {
     function installFUSDangerDanger() {
         SystemFileDialog.accepted.connect(function() {
             const messageObj = {
-                title : qsTr("Install FUS?"),
+                title : qsTr("Install Unleashed Private"),
                 customText: qsTr("Install"),
                 suggestedRole: ConfirmationDialog.RejectRole,
-                message: qsTr("LAST WARNING! This will invalidate your encryption keys! Please reconsider.")
+                message: qsTr("LAST WARNING! This will flash UNLEASHED PRIVATE! Please reconsider.")
             };
 
             const actionFunc = function() {
-                Backend.installFUS(SystemFileDialog.fileUrl, 0x080ec00);
+                Backend.installFUS(SystemFileDialog.fileUrl, 0x080EC000);
             }
 
             confirmationDialog.openWithMessage(actionFunc, messageObj);
@@ -498,7 +431,6 @@ AbstractOverlay {
         deviceActions.reinstallAction.triggered.connect(reinstallFirmware);
         deviceActions.selfUpdateAction.triggered.connect(selfUpdateRequested);
         developerActions.installRadioAction.triggered.connect(installWirelessStack);
-        developerActions.installFusAction.triggered.connect(installFUSDangerDanger);
 
         if(App.isDeveloperMode) {
             tabs.addItem(developerTab);

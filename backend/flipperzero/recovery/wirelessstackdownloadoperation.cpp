@@ -37,6 +37,11 @@ const QString WirelessStackDownloadOperation::description() const
     return QStringLiteral("Co-Processor Firmware Download @%1").arg(deviceState()->name());
 }
 
+bool WirelessStackDownloadOperation::isFUSUpdate() const
+{
+    return m_targetAddress != 0;
+}
+
 void WirelessStackDownloadOperation::nextStateLogic()
 {
     if(operationState() == Ready) {
@@ -48,7 +53,7 @@ void WirelessStackDownloadOperation::nextStateLogic()
         deleteWirelessStack();
 
     } else if(operationState() == DeletingWirelessStack) {
-        if(isWirelessStackDeleted()) {
+        if(isFUSUpdate() || isWirelessStackDeleted()) {
             setOperationState(DownloadingWirelessStack);
             downloadWirelessStack();
         }
@@ -58,9 +63,11 @@ void WirelessStackDownloadOperation::nextStateLogic()
         upgradeWirelessStack();
 
     } else if(operationState() == UpgradingWirelessStack) {
-        if(isWirelessStackUpgraded()) {
-            setOperationState(CheckingWirelessStack);
-            checkWirelessStack();
+        if(isFUSUpdate()) {
+            finish();
+        } else if(isWirelessStackUpgraded()) {
+                setOperationState(CheckingWirelessStack);
+                checkWirelessStack();
         }
 
     } else if(operationState() == CheckingWirelessStack) {

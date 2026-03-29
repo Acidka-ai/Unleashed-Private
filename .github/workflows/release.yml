@@ -1,12 +1,13 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches:
-      - main
-      - master
-      - dev
-  pull_request:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build_linux:
@@ -95,3 +96,54 @@ jobs:
             .\build\qFlipper-64bit.zip
           if-no-files-found: error
           retention-days: 7
+
+  publish_release:
+    name: Publish GitHub Release
+    needs: [build_linux, build_mac, build_windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qFlipper-linux-appimage
+          path: release-assets
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qFlipper-macos-dmg
+          path: release-assets
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: qFlipper-windows-bundle
+          path: release-assets
+
+      - name: Resolve release tag
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=manual-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            release-assets/qFlipper-x86_64.AppImage
+            release-assets/qFlipper.dmg
+            release-assets/qFlipperSetup-64bit.exe
+            release-assets/qFlipper-64bit.zip

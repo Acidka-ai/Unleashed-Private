@@ -15,7 +15,6 @@ Item {
     readonly property int verticalPadding: 10
 
     property alias installRadioAction: installRadioAction
-    property alias installFusAction: installFusAction
 
     ColumnLayout {
         id: control
@@ -44,30 +43,9 @@ Item {
             }
         }
 
-        SmallButtonRed {
-            action: installFusAction
-            Layout.fillWidth: true
-
-            icon.source: "qrc:/assets/gfx/symbolic/restore-symbolic.svg"
-            icon.width: 18
-            icon.height: 20
-
-            ToolTip {
-                visible: parent.hovered
-                text: qsTr("Install a custom FUS firmware. !!MEGA WARNING!! It WILL result in encryption keys loss!")
-                implicitWidth: 250
-            }
-        }
-
         Action {
             id: installRadioAction
             text: qsTr("Install wireless fw")
-        }
-
-        Action {
-            id: installFusAction
-            text: qsTr("Install FUS firmware")
-            enabled: Backend.deviceState && Backend.deviceState.isRecoveryMode
         }
     }
 }

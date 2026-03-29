@@ -29,6 +29,7 @@ private slots:
     void onOperationTimeout() override;
 
 private:
+    bool isFUSUpdate() const;
     void startFUS();
     void deleteWirelessStack();
     bool isWirelessStackDeleted();

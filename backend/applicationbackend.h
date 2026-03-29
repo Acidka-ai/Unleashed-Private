@@ -102,7 +102,7 @@ public:
 
     Q_INVOKABLE void installFirmware(const QUrl &fileUrl);
     Q_INVOKABLE void installWirelessStack(const QUrl &fileUrl);
-    Q_INVOKABLE void installFUS(const QUrl &fileUrl, uint32_t address);
+    Q_INVOKABLE void installFUS(const QUrl &fileUrl, uint address);
 
     Q_INVOKABLE void startFullScreenStreaming();
     Q_INVOKABLE void stopFullScreenStreaming();
