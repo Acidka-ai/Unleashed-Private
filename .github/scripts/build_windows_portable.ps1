@@ -4,9 +4,8 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $buildDir = Join-Path $repoRoot "build-win-gh"
 $distDir = Join-Path $buildDir "qFlipper"
-$qtBin = Join-Path $env:Qt6_Dir "bin"
-$qmake = Join-Path $qtBin "qmake.exe"
-$windeployqt = Join-Path $qtBin "windeployqt.exe"
+$qmake = (Get-Command qmake.exe -ErrorAction Stop).Source
+$windeployqt = (Get-Command windeployqt.exe -ErrorAction Stop).Source
 
 if (Test-Path $buildDir) {
     Remove-Item -Recurse -Force $buildDir
@@ -27,7 +26,8 @@ if (!(Test-Path "$distDir\qFlipper.exe")) {
 & $windeployqt --release --no-compiler-runtime --qmldir "$repoRoot\application" "$distDir\qFlipper.exe"
 & $windeployqt --release --no-compiler-runtime "$distDir\qFlipper-cli.exe"
 
-$opensslCandidates = Get-ChildItem -Path $env:Qt6_Dir -Recurse -File -Include "libssl-*.dll","libcrypto-*.dll","libssl*.dll","libcrypto*.dll" -ErrorAction SilentlyContinue
+$qtRoot = Split-Path -Parent (Split-Path -Parent $qmake)
+$opensslCandidates = Get-ChildItem -Path $qtRoot -Recurse -File -Include "libssl-*.dll","libcrypto-*.dll","libssl*.dll","libcrypto*.dll" -ErrorAction SilentlyContinue
 foreach ($file in $opensslCandidates) {
     Copy-Item $file.FullName -Destination $distDir -Force
 }
