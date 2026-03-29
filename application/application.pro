@@ -73,6 +73,10 @@ win32 {
             VERSION = $$GIT_VERSION
         }
 
+        contains(VERSION, ^v.*) {
+            VERSION = $$replace(VERSION, ^v, )
+        }
+
     } else: VERSION = 0.0.0
 }
 
