@@ -29,7 +29,10 @@ if (!(Test-Path "$distDir\qFlipper.exe")) {
 }
 
 & $windeployqt --release --no-compiler-runtime --qmldir "$repoRoot\application" "$distDir\qFlipper.exe"
-& $windeployqt --release --no-compiler-runtime "$distDir\qFlipper-cli.exe"
+$cliExe = Join-Path $distDir "qFlipper-cli.exe"
+if (Test-Path $cliExe) {
+    & $windeployqt --release --no-compiler-runtime $cliExe
+}
 
 $qtRoot = Split-Path -Parent (Split-Path -Parent $qmake)
 $opensslCandidates = Get-ChildItem -Path $qtRoot -Recurse -File -Include "libssl-*.dll","libcrypto-*.dll","libssl*.dll","libcrypto*.dll" -ErrorAction SilentlyContinue
