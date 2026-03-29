@@ -147,3 +147,4 @@ jobs:
             release-assets/qFlipper.dmg
             release-assets/qFlipperSetup-64bit.exe
             release-assets/qFlipper-64bit.zip
+            ./release-assets/stm32wb5x_FUS_fw.bin
